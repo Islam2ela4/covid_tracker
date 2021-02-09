@@ -1,4 +1,3 @@
-
 import 'package:covid_tracker/business_logic/models/country_cases.dart';
 import 'package:covid_tracker/business_logic/view_models/home_screen_viewmodel.dart';
 import 'package:covid_tracker/business_logic/view_models/map_viewmodel.dart';
@@ -20,18 +19,13 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> with TickerProviderStateMixin {
-  // Map_ViewModel map_model;
   MotionTabController _tabController;
 
   // search
-  String str_search = '';
-
-  // default LatLng
-  final LatLng _center = const LatLng(26.8206, 30.8025);
+  String str_search;
 
   @override
   void initState() {
-    Provider.of<Home_Screen_ViewModel>(context, listen: false).loadData();
     _tabController = MotionTabController(initialIndex: 1, vsync: this);
     super.initState();
   }
@@ -44,12 +38,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    var model = Provider.of<Home_Screen_ViewModel>(context);
-    // map_model = Provider.of<Map_ViewModel>(context);
-
     return Scaffold(
         appBar: _buildAppBar(),
-        body: _buildUi(model),
+        body: _buildUi(),
         bottomNavigationBar: _navigationBar());
   }
 
@@ -101,18 +92,18 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildUi(Home_Screen_ViewModel m) {
+  Widget _buildUi() {
     return MotionTabBarView(
       controller: _tabController,
       children: <Widget>[
-        _buildUI_Search(m),
-        _buildUI_Home(m),
-        _BuildUI_Map(m),
+        _buildUI_Search(),
+        _Home_list(),
+        _BuildUI_Map(),
       ],
     );
   }
 
-  Widget _buildUI_Search(Home_Screen_ViewModel m) {
+  Widget _buildUI_Search() {
     return Column(
       mainAxisSize: MainAxisSize.max,
       children: <Widget>[
@@ -135,36 +126,79 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             },
           ),
         ),
-        Expanded(child: _buildUI_Home(m)),
+        Expanded(child: _Search_list(str_search)),
       ],
     );
   }
 
-  List<Country_cases> filter(List<Country_cases> base_list){
+  Widget _navigationBar() {
+    return MotionTabBar(
+      labels: ["Search", "Home", "Map"],
+      initialSelectedTab: "Home",
+      tabIconColor: Colors.green,
+      tabSelectedColor: Colors.red,
+      onTabItemSelected: (int value) {
+        setState(() {
+          _tabController.index = value;
+        });
+      },
+      icons: [Icons.search, Icons.home, Icons.map],
+      textStyle: TextStyle(color: Colors.red),
+    );
+  }
+}
+
+class _Search_list extends StatelessWidget {
+  String search_str;
+
+  _Search_list(this.search_str);
+
+  @override
+  Widget build(BuildContext context) {
+    var model = Provider.of<Home_Screen_ViewModel>(context);
+    return filter(model.attrs).isEmpty
+        ? Container()
+        : _List_view(filter(model.attrs));
+  }
+
+  List<Country_cases> filter(List<Country_cases> base_list) {
     List<Country_cases> dummy_list = [];
     base_list.forEach((country_cases) {
-      if(country_cases.Country_Region.toLowerCase().startsWith(str_search.toLowerCase())){
+      if (search_str != null && country_cases.Country_Region.toLowerCase()
+          .startsWith(search_str.toLowerCase())) {
         dummy_list.add(country_cases);
       }
     });
     return dummy_list;
   }
 
-  Widget _buildUI_Home(Home_Screen_ViewModel m) {
-    if (m.attrs == null) {
-      return Align(child: CircularProgressIndicator());
-    } else if (m.attrs.isEmpty) {
-      return Align(child: Text("No Data..."));
-    } else if (m.attrs.isNotEmpty && _tabController.index == 1){
-      return _listView(m.attrs);
-    } else if (m.attrs.isNotEmpty && _tabController.index == 0 && str_search != ''){
-      return _listView(filter(m.attrs));
-    }else{
-      return Container();
-    }
+}
+
+class _Home_list extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var model = Provider.of<Home_Screen_ViewModel>(context);
+    model.loadData();
+    return model.attrs == null || model.attrs.isEmpty
+        ? Align(
+            child: CircularProgressIndicator(),
+          )
+        : _List_view(model.attrs);
   }
 
-  Widget _listView(List<Country_cases> list) {
+}
+
+class _List_view extends StatelessWidget {
+  List<Country_cases> list;
+
+  _List_view(this.list);
+
+  @override
+  Widget build(BuildContext context) {
+    return _listView();
+  }
+
+  Widget _listView() {
     return Container(
       color: Colors.black12,
       child: ListView.builder(
@@ -173,7 +207,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           return Card(
             elevation: 0,
             child: ListTile(
-              title: _customRowList(list[index]),
+              title: _customRowList(context, list[index]),
               onTap: () {
                 Navigator.of(context)
                     .pushNamed(Corona_cases.ROUTE, arguments: list[index]);
@@ -185,19 +219,19 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     );
   }
 
-  Widget _customRowList(Country_cases cases) {
+  Widget _customRowList(BuildContext context, Country_cases cases) {
     return Row(
       children: <Widget>[
         Expanded(
           child: cases.Country_Region.length < 8
               ? Text(
-                  cases.Country_Region,
-                  style: Theme.of(context).textTheme.headline2,
-                )
+            cases.Country_Region,
+            style: Theme.of(context).textTheme.headline2,
+          )
               : Text(
-                  cases.Country_Region.substring(0, 7),
-                  style: Theme.of(context).textTheme.headline2,
-                ),
+            cases.Country_Region.substring(0, 7),
+            style: Theme.of(context).textTheme.headline2,
+          ),
         ),
         Expanded(
           child: Icon(
@@ -227,45 +261,30 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       ],
     );
   }
+}
 
-  Widget _BuildUI_Map(Home_Screen_ViewModel m) {
-    if(m.attrs == null || m.attrs.isEmpty){
-      return GoogleMap(
-        initialCameraPosition: CameraPosition(
-          target: _center,
-          zoom: 2.0,
-        ),
-      );
-    }else if( m.attrs.isNotEmpty){
-      Provider.of<Map_ViewModel>(context, listen: false).add_all(m.attrs);
-      return GoogleMap(
-        initialCameraPosition: CameraPosition(
-          target: _center,
-          zoom: 5.0,
-        ),
-        mapType: MapType.normal,
-        markers: Set.from(Provider.of<Map_ViewModel>(context).allMarkers),
-        minMaxZoomPreference: MinMaxZoomPreference(5.0, 10.0),
+
+class _BuildUI_Map extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var model_home = Provider.of<Home_Screen_ViewModel>(context);
+    var model_map = Provider.of<Map_ViewModel>(context);
+    if (model_home.attrs.isNotEmpty) {
+      model_map.add_all(model_home.attrs);
+      if (model_map.allMarkers.isNotEmpty) {
+        return GoogleMap(
+          initialCameraPosition: CameraPosition(
+            target: LatLng(26.8206, 30.8025),
+            zoom: 5.0,
+          ),
+          mapType: MapType.normal,
+          markers: Set.from(model_map.allMarkers),
+          minMaxZoomPreference: MinMaxZoomPreference(5.0, 10.0),
+        );
+      }
+      return Center(
+        child: CircularProgressIndicator(),
       );
     }
-  }
-
-
-
-
-  Widget _navigationBar() {
-    return MotionTabBar(
-      labels: ["Search", "Home", "Map"],
-      initialSelectedTab: "Home",
-      tabIconColor: Colors.green,
-      tabSelectedColor: Colors.red,
-      onTabItemSelected: (int value) {
-        setState(() {
-          _tabController.index = value;
-        });
-      },
-      icons: [Icons.search, Icons.home, Icons.map],
-      textStyle: TextStyle(color: Colors.red),
-    );
   }
 }
