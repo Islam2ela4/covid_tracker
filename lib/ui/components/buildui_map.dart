@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:covid_tracker/business_logic/view_models/home_screen_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -11,7 +13,9 @@ class BuildUI_Map extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Completer<GoogleMapController> _controller = Completer();
     var model = context.select((Home_Screen_ViewModel m) => m.allMarkers);
+
     if (model.isEmpty) {
       return Align(child: CircularProgressIndicator(),);
     }else{
@@ -21,9 +25,11 @@ class BuildUI_Map extends StatelessWidget {
           zoom: zoom,
         ),
         mapType: MapType.normal,
+        onMapCreated: (controller) => _controller.complete(controller),
         markers: Set.from(model),
         minMaxZoomPreference: MinMaxZoomPreference(5.0, 10.0),
       );
     }
   }
+
 }
