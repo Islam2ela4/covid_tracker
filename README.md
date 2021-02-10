@@ -3,6 +3,8 @@
 Flutter app...<br>
 Used tech. >> Provider - MVVM - http - Google Maps.
 
+Video link: https://www.linkedin.com/posts/islam-elash-93bab1151_flutterapp-flutterdevelopers-covid-activity-6765414132100423680-HaRM
+
 
 ![Screenshot_1612995669](https://user-images.githubusercontent.com/45439722/107580606-7ba25200-6bff-11eb-9503-6870ccc06451.png)![Screenshot_1612995672](https://user-images.githubusercontent.com/45439722/107580627-8230c980-6bff-11eb-878f-719024b28e63.png)![Screenshot_1612661281](https://user-images.githubusercontent.com/45439722/107134717-4c3cce00-68fd-11eb-857d-2d2de35f3e59.png)
 
