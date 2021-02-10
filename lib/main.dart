@@ -1,5 +1,4 @@
 import 'package:covid_tracker/business_logic/view_models/home_screen_viewmodel.dart';
-import 'package:covid_tracker/business_logic/view_models/map_viewmodel.dart';
 import 'package:covid_tracker/ui/pages/splash.dart';
 import 'package:covid_tracker/ui/routes.dart';
 import 'package:flutter/material.dart';
@@ -10,9 +9,6 @@ main() {
     providers: [
       ChangeNotifierProvider<Home_Screen_ViewModel>(
         create: (_) => Home_Screen_ViewModel(),
-      ),
-      ChangeNotifierProvider<Map_ViewModel>(
-        create: (_) => Map_ViewModel(),
       ),
     ],
     child: MyApp(),
